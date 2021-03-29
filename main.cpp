@@ -44,28 +44,24 @@
             float new_speed;
             new_speed = 0.6 * (float) speed;
             speed = (int) new_speed;
-            printf("%d ", speed);
             while(x<35){
                 x++;
                 moving( x, y, speed, rand_char);
             }
             new_speed = 1.2 * (float) speed;
             speed = (int) new_speed;
-            printf("%d ", speed);
             while(y<15){
                 y++;
                 moving(x, y, speed, rand_char); 
             }
             new_speed = 0.6 * (float) speed;
             speed = (int) new_speed;
-            printf("%d ", speed);
             while(x>0){
                 x--;
                 moving(x, y, speed, rand_char);
             }
             new_speed = 1.2 * (float) speed;
             speed = (int) new_speed;
-            printf("%d ", speed);
             while(y>0 && i<2){
                 y--;
                 moving(x, y, speed, rand_char);    
@@ -74,28 +70,23 @@
     }
 
 
-int main()
-{
-    srand(time(NULL));
-    initscr();
-    curs_set(0);
-    int height, width, start_y, start_x;
-    // zewnetrzna krawedz toru
-    start_x = start_y = 0;
-    height = 20; // wysokosc w znakach
-    width = 40; // szerokosc w znakach 
+
+    void draw_track(int width, int height, int start_x, int start_y){ 
     WINDOW * outer_bound = newwin(height, width, start_y, start_x); // okno
     refresh(); // odswiezenie okna
     box(outer_bound, 0, 0);// zrobienie obramowania
     wrefresh(outer_bound);//odswiezenia okna zeby byla ramka
+    }
+
+int main()
+{
+    srand(time(NULL));
+    initscr();
+    curs_set(0); // usuniecie kursora
+    // zewnetrzna krawedz toru
+    draw_track(40, 20, 0 ,0);
     //wewnetrzna krawedz toru
-    height = 12;
-    width = 32;
-    start_x = start_y = 4;
-    WINDOW * inner_bound = newwin(height, width, start_y, start_x);
-    refresh();
-    box(inner_bound, 0, 0);
-    wrefresh(inner_bound);
+    draw_track(32,12,4,4);
     track_ride();
     getch();
     endwin();
