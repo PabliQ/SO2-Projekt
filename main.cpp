@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <random>
 #include <time.h>
+#include <iostream>
 
 
     int random_speed(){
@@ -13,59 +14,49 @@
         return speed;
     }
 
-    char * random_char(){
-        int rand_number;
-        char * rand_char;
-        rand_number = rand()%26;
-        char c = 'a' + rand_number;
-        rand_char = & c;
+    char  random_char(){
+        char rand_char = "abcdefghijklmnoqprstuvwxyz"[rand()%26];
+        char * c;
+        c = & rand_char;
         return rand_char;
     }
+
     void sleeping(int time){
         std::this_thread::sleep_for(std::chrono::milliseconds(time));
     }
 
-    void track_ride(int speed, WINDOW * track, char  * znak){
+    void moving(int x, int y, int speed, char  znak)
+    {
+        move(2+y, 2+x);
+        printw("%c", znak);
+        refresh();
+        sleeping(speed);                
+        move(2+y, 2+x);
+        printw("%c", ' ');
+        //sleeping(speed);
+    }
+
+    void track_ride(){
+        char rand_char = random_char();
         for (int i = 0; i<3; i++){ // licznik okrążeń
             int x = 0;
             int y = 0;
             while(x<35){
                 x++;
-                mvwprintw(track, y, x, znak);
-                wrefresh(track);
-                sleeping(speed);
-                mvwprintw(track, y, x, " ");
-                wrefresh(track);
-                sleeping(speed);  
+                moving( x, y, random_speed(), rand_char);
             }
-            refresh();
             while(y<15){
                 y++;
-                mvwprintw(track, y, x, znak);
-                wrefresh(track);
-                sleeping(speed);
-                mvwprintw(track, y, x, " ");
-                wrefresh(track);     
+                moving(x, y, random_speed(), rand_char); 
             }
-            refresh();
             while(x>0){
                 x--;
-                mvwprintw(track, y, x, znak);
-                wrefresh(track);
-                sleeping(speed);
-                mvwprintw(track, y, x, " ");
-                wrefresh(track);  
+                moving(x, y, random_speed(), rand_char);
             }
-            refresh();
-            while(y>0){
+            while(y>0 && i<2){
                 y--;
-                mvwprintw(track, y, x, znak);
-                wrefresh(track);
-                sleeping(speed);
-                mvwprintw(track, y, x, " ");
-                wrefresh(track);     
+                moving(x, y, random_speed(), rand_char);    
             }
-            refresh();
         }
     }
 
@@ -74,8 +65,9 @@ int main()
 {
     srand(time(NULL));
     initscr();
+    curs_set(0);
     int height, width, start_y, start_x;
-    // zwnetrzna krawedz toru
+    // zewnetrzna krawedz toru
     start_x = start_y = 0;
     height = 20; // wysokosc w znakach
     width = 40; // szerokosc w znakach 
@@ -83,26 +75,15 @@ int main()
     refresh(); // odswiezenie okna
     box(outer_bound, 0, 0);// zrobienie obramowania
     wrefresh(outer_bound);//odswiezenia okna zeby byla ramka
-
-    //trasa do przejazdu
-    height = 16;
-    width = 36;
-    start_x = start_y = 2;
-    WINDOW * track = newwin(height, width, start_y, start_x);
-    refresh();
-    box(track, 0, 0);
-    wrefresh(track);
-
     //wewnetrzna krawedz toru
-    /*height = 12;
+    height = 12;
     width = 32;
     start_x = start_y = 4;
     WINDOW * inner_bound = newwin(height, width, start_y, start_x);
     refresh();
-    wrefresh(inner_bound);*/
-
-    track_ride(random_speed(), track, random_char());    
-
+    box(inner_bound, 0, 0);
+    wrefresh(inner_bound);
+    track_ride();
     getch();
     endwin();
     return 0;
