@@ -89,18 +89,15 @@ int main()
     draw_track(32,12,4,4);
 
     //watki
-    pthread_t first, second;
+    pthread_t first, second, third;
     pthread_create(&first, NULL, track_ride,NULL);
     pthread_create(&second, NULL, track_ride,NULL);
-    //pthread_create(&third, NULL, track_ride,NULL);
-    //pthread_create(&fourth, NULL, track_ride,NULL);
-    //pthread_create(&fifth, NULL, track_ride,NULL);
-    //pthread_create(&sixth, NULL, track_ride,NULL);
-    //pthread_create(&seventh, NULL, track_ride,NULL);
-
-
+    pthread_create(&third, NULL, track_ride, NULL);
+    pthread_join(first, NULL);
+    pthread_join(third,NULL);
+    
     //track_ride();
-    //getch();
+    getch();
     endwin();
     return 0;
 }
