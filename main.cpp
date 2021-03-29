@@ -35,7 +35,8 @@
         printw("%c", ' ');
     }
 
-    void track_ride(){
+    void * track_ride(void * arg){
+        sleeping(rand()%3000);
         char rand_char = random_char();
         for (int i = 0; i<3; i++){ // licznik okrążeń
             int x = 0;
@@ -67,9 +68,8 @@
                 moving(x, y, speed, rand_char);    
             }
         }
+        return NULL;
     }
-
-
 
     void draw_track(int width, int height, int start_x, int start_y){ 
     WINDOW * outer_bound = newwin(height, width, start_y, start_x); // okno
@@ -87,8 +87,20 @@ int main()
     draw_track(40, 20, 0 ,0);
     //wewnetrzna krawedz toru
     draw_track(32,12,4,4);
-    track_ride();
-    getch();
+
+    //watki
+    pthread_t first, second;
+    pthread_create(&first, NULL, track_ride,NULL);
+    pthread_create(&second, NULL, track_ride,NULL);
+    //pthread_create(&third, NULL, track_ride,NULL);
+    //pthread_create(&fourth, NULL, track_ride,NULL);
+    //pthread_create(&fifth, NULL, track_ride,NULL);
+    //pthread_create(&sixth, NULL, track_ride,NULL);
+    //pthread_create(&seventh, NULL, track_ride,NULL);
+
+
+    //track_ride();
+    //getch();
     endwin();
     return 0;
 }
