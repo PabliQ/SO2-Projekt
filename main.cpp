@@ -10,7 +10,7 @@
 
     int random_speed(){
         int speed;
-        speed =  rand()%91 + 30;
+        speed =  rand()%101 + 100;
         return speed;
     }
 
@@ -33,7 +33,6 @@
         sleeping(speed);                
         move(2+y, 2+x);
         printw("%c", ' ');
-        //sleeping(speed);
     }
 
     void track_ride(){
@@ -41,21 +40,35 @@
         for (int i = 0; i<3; i++){ // licznik okrążeń
             int x = 0;
             int y = 0;
+            int speed = random_speed();
+            float new_speed;
+            new_speed = 0.6 * (float) speed;
+            speed = (int) new_speed;
+            printf("%d ", speed);
             while(x<35){
                 x++;
-                moving( x, y, random_speed(), rand_char);
+                moving( x, y, speed, rand_char);
             }
+            new_speed = 1.2 * (float) speed;
+            speed = (int) new_speed;
+            printf("%d ", speed);
             while(y<15){
                 y++;
-                moving(x, y, random_speed(), rand_char); 
+                moving(x, y, speed, rand_char); 
             }
+            new_speed = 0.6 * (float) speed;
+            speed = (int) new_speed;
+            printf("%d ", speed);
             while(x>0){
                 x--;
-                moving(x, y, random_speed(), rand_char);
+                moving(x, y, speed, rand_char);
             }
+            new_speed = 1.2 * (float) speed;
+            speed = (int) new_speed;
+            printf("%d ", speed);
             while(y>0 && i<2){
                 y--;
-                moving(x, y, random_speed(), rand_char);    
+                moving(x, y, speed, rand_char);    
             }
         }
     }
