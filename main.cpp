@@ -7,7 +7,7 @@
 #include <time.h>
 #include <iostream>
 
-const float max_speed = 40;
+const float max_speed = 60;
 int positions[10];
 int speed_table[10];
 int acceleration[10];
@@ -16,13 +16,13 @@ int t_created_number = 0;
 
     int random_speed(){
         int speed;
-        speed =  rand()%101 + 100;
+        speed = rand()%300 + 120;
         return speed;
     }
 
     int random_acceleration(){
         int acceleration;
-        acceleration =  rand()%6 + 1;
+        acceleration =  rand()%6 + 5;
         return acceleration;
     }
 
@@ -48,14 +48,20 @@ int t_created_number = 0;
         printw("%c", ' ');
     }
 
-    void check_move(int thread_number){
+    bool check_move(int thread_number){
         for (int i=0;i<10;i++){
-            if((positions[thread_number]+1)==positions[i]){
-                if(speed_table[thread_number]>speed_table[i]){
-                    speed_table[thread_number]=speed_table[i];
+            if(i!=thread_number){
+                if((positions[thread_number]+1)==positions[i]){
+                    if(speed_table[thread_number]<speed_table[i]){
+                        speed_table[thread_number]=speed_table[i];
+                        if(acceleration[thread_number]>acceleration[i]){
+                            return false;
+                        }
+                    }
                 }
             }
         }
+        return true;
     }
 
 
@@ -68,42 +74,82 @@ int t_created_number = 0;
     void * track_ride(void * arg){
         char rand_char = random_char();
         int t_number = t_created_number;
-        int position = 0;
         speed_table[t_number]=random_speed();
         acceleration[t_number] = random_acceleration();
         for (int i = 0; i<3; i++){ // licznik okrążeń
             int x = 0;
             int y = 0;
+            positions[t_number]=0;
             while(x<35){
-                x++;
-                position++;
-                positions[t_number] = position;
-                accelerate(t_number);
-                moving( x, y, speed_table[t_number], rand_char);
+                if(check_move(t_number)){
+                    x++;
+                    positions[t_number]++;
+                    moving( x, y, speed_table[t_number], rand_char);
+                    accelerate(t_number);
+                }
+                else{
+                    int j=0;
+                    while(j<3 && x<35){
+                        x++;
+                        positions[t_number]++;
+                        moving( x, y, speed_table[t_number], rand_char);
+                        accelerate(t_number);
+                    }
+                }
             }
             while(y<15){
-                y++;
-                position++;
-                positions[t_number] = position;
-                accelerate(t_number);
-                moving(x, y, speed_table[t_number], rand_char); 
+                if(check_move(t_number)){
+                    y++;
+                    positions[t_number]++;
+                    moving(x, y, speed_table[t_number], rand_char);
+                    accelerate(t_number);
+                }
+                else{
+                    int j=0;
+                    while(j<3 && x<35){
+                    y++;
+                    positions[t_number]++;
+                    moving(x, y, speed_table[t_number], rand_char);
+                    accelerate(t_number);
+                    }
+                }
             }
             while(x>0){
-                x--;
-                position++;
-                positions[t_number] = position;
-                accelerate(t_number);
-                moving(x, y, speed_table[t_number], rand_char);
+                if(check_move(t_number)){
+                    x--;
+                    positions[t_number]++;
+                    moving(x, y, speed_table[t_number], rand_char);
+                    accelerate(t_number);  
+                }
+                else{
+                    int j=0;
+                    while(j<3 && x>0){
+                    x--;
+                    positions[t_number]++;
+                    moving(x, y, speed_table[t_number], rand_char);
+                    accelerate(t_number);
+                    }
+                }
             }
             while(y>0 && i<2){
-                y--;
-                position ++;
-                positions[t_number] = position;
-                accelerate(t_number);
-                moving(x, y, speed_table[t_number], rand_char);    
+                if(check_move(t_number)){
+                    y--;
+                    positions[t_number]++;
+                    moving(x, y, speed_table[t_number], rand_char);
+                    accelerate(t_number);
+                }
+                else{
+                    int j=0;
+                    while(j<3 && y>0){
+                    y--;
+                    positions[t_number]++;
+                    moving(x, y, speed_table[t_number], rand_char);
+                    accelerate(t_number);
+                    }
+                }   
             }
         }
-        position = 100;
+        positions[t_number]=100; //pojazd poza torem
         return NULL;
     }
 
@@ -117,7 +163,7 @@ int t_created_number = 0;
     void *create_threads(void *ptr){
         pthread_t my_thread[10];
         for (int i=0;i<10;i++){
-            sleeping(rand()%500 + 1400);
+            sleeping(rand()%1000 + 1400);
             pthread_create(&my_thread[i],NULL,track_ride, NULL);
             t_created_number++;
         }
