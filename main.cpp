@@ -12,7 +12,26 @@ int positions[10];
 int speed_table[10];
 int acceleration[10];
 int t_created_number = 0;
+bool is_route_busy = false;
+bool is_waiting_for_route[10];
+int best_waiting_thread;
+//pthread_cond_t route_condition;
+pthread_mutex_t route_mutex;
 
+
+    struct track_part{
+        int min_position;
+        int max_position;
+    };
+
+    void close_track(){
+        is_route_busy = true;
+    }
+
+
+    void open_track(){
+        is_route_busy = false;
+    }
 
     int random_speed(){
         int speed;
@@ -22,7 +41,7 @@ int t_created_number = 0;
 
     int random_acceleration(){
         int acceleration;
-        acceleration =  rand()%6 + 5;
+        acceleration =  rand()%10 + 5;
         return acceleration;
     }
 
@@ -33,9 +52,30 @@ int t_created_number = 0;
         return rand_char;
     }
 
+    void select_fastest(){
+        int best_thread_number;
+        int best_acc = 0;
+        for (int i=0;i<10;i++){
+            if(is_waiting_for_route[i]==true){
+                if(acceleration[i]>best_acc){
+                    best_acc = acceleration[i];
+                    best_thread_number = i;
+                }
+            }
+        }
+    }
 
     void sleeping(int time){
         std::this_thread::sleep_for(std::chrono::milliseconds(time));
+    }
+    
+    bool is_fastest(int t_number){
+        if(t_number==best_waiting_thread){
+            return true;
+        }
+        else{
+            return false;
+        }
     }
 
     void moving(int x, int y, int speed, char  znak)
@@ -71,11 +111,22 @@ int t_created_number = 0;
         }
     }
 
+    int how_many_wait(){
+        int counter = 0;
+        for (int i=0;i<10;i++){
+            if(is_waiting_for_route[i]==true){
+                counter++;
+            }
+        }
+        return counter;
+    }
+
     void * track_ride(void * arg){
         char rand_char = random_char();
         int t_number = t_created_number;
         speed_table[t_number]=random_speed();
         acceleration[t_number] = random_acceleration();
+        is_waiting_for_route[t_number] = false;
         for (int i = 0; i<3; i++){ // licznik okrążeń
             int x = 0;
             int y = 0;
@@ -130,26 +181,38 @@ int t_created_number = 0;
                     accelerate(t_number);
                     }
                 }
+                if(x==1){
+                    is_waiting_for_route[t_number]=true;
+                }
             }
-            while(y>0 && i<2){
+            select_fastest();
+            //close_track();
+            pthread_mutex_trylock(&route_mutex);
+            if(how_many_wait()>0){
+                if(best_waiting_thread==t_number){
+                    while(y>0 && i<2){
+                    close_track();
+                        if(check_move(t_number)){
+                            y--;
+                            positions[t_number]++;
+                            moving(x, y, speed_table[t_number], rand_char);
+                            accelerate(t_number);
+                        } 
+                    }
+                }
+            }
+            open_track();  
+            /*while(y>0 && i<2 && is_route_busy==false){
                 if(check_move(t_number)){
                     y--;
                     positions[t_number]++;
                     moving(x, y, speed_table[t_number], rand_char);
                     accelerate(t_number);
-                }
-                else{
-                    int j=0;
-                    while(j<3 && y>0){
-                    y--;
-                    positions[t_number]++;
-                    moving(x, y, speed_table[t_number], rand_char);
-                    accelerate(t_number);
-                    }
-                }   
+                } 
             }
+            open_track();*/
         }
-        positions[t_number]=100; //pojazd poza torem
+        positions[t_number]=1000; //pojazd poza torem
         return NULL;
     }
 
@@ -163,7 +226,7 @@ int t_created_number = 0;
     void *create_threads(void *ptr){
         pthread_t my_thread[10];
         for (int i=0;i<10;i++){
-            sleeping(rand()%1000 + 1400);
+            sleeping(rand()%1000 + 600);
             pthread_create(&my_thread[i],NULL,track_ride, NULL);
             t_created_number++;
         }
@@ -180,7 +243,6 @@ int main()
     draw_track(40, 20, 0 ,0);
     //wewnetrzna krawedz toru
     draw_track(32,12,4,4);
-
     //watki
     pthread_t thr;
     pthread_create(&thr, NULL,*create_threads,NULL);
